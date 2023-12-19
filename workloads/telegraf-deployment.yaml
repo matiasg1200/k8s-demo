@@ -1,0 +1,113 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: telegraf-config
+data:
+  telegraf.conf: |
+    [global_tags]
+      agent = "telegraf-grpn"
+      env = "dev"
+      region = "us-west-2"
+      vpc = "aws-stable"
+
+    # Configuration for Telegraf agent
+    [agent]
+      interval = "60s"
+      round_interval = true
+      metric_batch_size = 5000
+      metric_buffer_limit = 1000000
+      collection_jitter = "0s"
+      flush_interval = "10s"
+      flush_jitter = "20s"
+      hostname = ""
+      # Collected metrics are rounded to the precision specified as an interval.
+      precision = ""
+      # Run Telegraf with debug log messages.
+      debug = true
+      # Run Telegraf in quiet mode (error log messages only).
+      quiet = false
+
+    ###############################################################################
+    #                            INPUT PLUGINS                                    #
+    ###############################################################################
+
+    [[inputs.internal]]
+      collect_memstats = true
+      tagexclude = ["version", "go_version"]
+      [inputs.internal.tags]
+        atom = "$HOSTNAME"
+        component = "dev-env"
+        service = "telegraf"
+        source = "telegraf-dev-env"
+
+    ###############################################################################
+    #                             OUTPUT PLUGINS                                  #
+    ###############################################################################
+
+    # This plugin starts a Prometheus Client, it exposes all metrics on /metrics (default) to be polled by a Prometheus server.
+    [[outputs.prometheus_client]]
+      ## Address to listen on.
+      listen = ":9273"
+      path = "/metrics"
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegraf-deployment
+  labels:
+    app: prometheus-thanos-poc
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: prometheus-thanos-poc
+  template:
+    metadata:
+      labels:
+        name: telegraf
+        app: prometheus-thanos-poc
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/metrics"
+    spec:
+      containers:
+      - name: telegraf
+        image: telegraf:1.9-alpine
+        ports:
+        - name: http
+          containerPort: 9273
+        resources:
+          requests:
+            cpu: 100m
+            memory: 250Mi
+        readinessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 3
+        livenessProbe:
+          exec:
+            command:
+            - ls
+            - /
+          initialDelaySeconds: 300
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          successThreshold: 1
+        args:
+        - telegraf
+        - --config-directory=/etc/telegraf
+        volumeMounts:
+        - name: config-volume
+          mountPath: /etc/telegraf
+      volumes:
+      - name: config-volume
+        configMap:
+          name: telegraf-config

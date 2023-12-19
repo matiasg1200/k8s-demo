@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: thanos-store-gateway
+  labels:
+    app: thanos-store-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: thanos-store-gateway
+  template:
+    metadata:
+      labels:
+        app: thanos-store-gateway
+        thanos-store-api: "true"
+    spec:
+      containers:
+      - name: thanos-store-gateway
+        image: docker-conveyor.groupondev.com/thanos/thanos:v0.10.0
+        args:
+        - store
+        - --log.level=debug
+        - --data-dir=/var/thanos/store
+        - |
+              --objstore.config=type: S3
+              config:
+                bucket: <bucket_name>
+                endpoint: <bucket_endpoint>
+                access_key: <bucket_access_key> 
+                secret_key: <bucket_secret_key>
+        - --grpc-address=0.0.0.0:10901
+        - --http-address=0.0.0.0:10902
+        - --index-cache-size=1000MB
+        - --min-time=-2d
+        ports:
+        - name: http
+          containerPort: 10902
+        - name: grpc
+          containerPort: 10901
+        resources:
+          requests:
+            cpu: 2
+            memory: 5Gi
+        readinessProbe:
+          failureThreshold: 20
+          httpGet:
+            path: /-/ready
+            port: 10902
+            scheme: HTTP
+          periodSeconds: 5
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /-/healthy
+            port: 10902
+            scheme: HTTP
+          periodSeconds: 60
+
+          
