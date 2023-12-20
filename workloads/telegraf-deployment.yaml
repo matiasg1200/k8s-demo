@@ -5,10 +5,8 @@ metadata:
 data:
   telegraf.conf: |
     [global_tags]
-      agent = "telegraf-grpn"
+      agent = "telegraf"
       env = "dev"
-      region = "us-west-2"
-      vpc = "aws-stable"
 
     # Configuration for Telegraf agent
     [agent]
@@ -35,10 +33,7 @@ data:
       collect_memstats = true
       tagexclude = ["version", "go_version"]
       [inputs.internal.tags]
-        atom = "$HOSTNAME"
-        component = "dev-env"
-        service = "telegraf"
-        source = "telegraf-dev-env"
+        host = "$HOSTNAME"
 
     ###############################################################################
     #                             OUTPUT PLUGINS                                  #
@@ -67,9 +62,6 @@ spec:
       labels:
         name: telegraf
         app: prometheus-thanos-poc
-      annotations:
-        prometheus.io/scrape: "true"
-        prometheus.io/path: "/metrics"
     spec:
       containers:
       - name: telegraf

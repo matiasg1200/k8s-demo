@@ -10,56 +10,48 @@ data:
       external_labels:
         cluster: dev
     scrape_configs:
-      - job_name: 'kubernetes-pods'
+      - job_name: 'telegraf-pods'
         honor_labels: true
         honor_timestamps: true
         kubernetes_sd_configs:
           - role: pod
         relabel_configs:
-          - source_labels: [__address__]
-            target_label: instance
-            regex: (.*):9273
-            replacement: prometheus
-          - source_labels: [__meta_kubernetes_pod_label_app_kubernetes_io_component]
+          - source_labels: [__meta_kubernetes_pod_name]
             action: keep
-            regex: telegraf
-          - source_labels: [__meta_kubernetes_pod_container_name]
-            action: keep
-            regex: telegraf
-          - source_labels: [__meta_kubernetes_pod_container_port_number]  
-            action: keep
-            regex: 9273
+            regex: telegraf-deployment.*
+
+            
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: prometheus-sts
   labels:
-    app: tprometheus-hanos-poc
+    app: prometheus-thanos-poc
 spec:
-  serviceName: "prometheus"
+  selector:
+    matchLabels:
+      app: prometheus-thanos-poc
   replicas: 1
-  minReadySeconds: 10
   template:
     metadata:
       labels:
-        app: prometheus-thanos-poc
         name: prometheus
-        thanos-store-api: "true"
+        app: prometheus-thanos-poc
     spec:
       serviceAccount: prometheus-sa
       serviceAccountName: prometheus-sa
       terminationGracePeriodSeconds: 10
       containers:
       - name: prometheus
-        image: docker.com/prom/prometheus:v2.30.3
+        image: prom/prometheus:v2.40.5
         ports:
         - name: web
           containerPort: 9090
         resources:
           requests:
             cpu: 250m
-            memory: 500Mi
+            memory: 100Mi
         livenessProbe:
           httpGet:
             path: /
@@ -95,55 +87,6 @@ spec:
           mountPath: /prometheus/data
         - name: prometheus-config
           mountPath: /etc/prometheus
-      - name: thanos-sidecar
-        image: docker.com/thanos/thanos:v0.10.0
-        ports:
-        - name: grpc
-          containerPort: 10901
-        resources:
-          requests:
-            cpu: 250m
-            memory: 500Mi    
-        readinessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 20
-          successThreshold: 1
-        livenessProbe:
-          exec:
-            command:
-            - ls
-            - /
-          initialDelaySeconds: 60
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 20
-          successThreshold: 1 
-        args:
-          - sidecar
-          - |
-              --objstore.config=type: S3
-              config:
-                bucket: grafana-poc-grpn-us-west-1
-                endpoint: s3.us-west-2.amazonaws.com 
-                access_key: AKIA4KUP3XT7SWLHBYWY 
-                secret_key: k7XtHMD7tzlm5cbsvHklaAhBNqMk1TbuU-ZAOik6
-          - '--tsdb.path=/prometheus/data' 
-          - '--prometheus.url=http://localhost:9090'
-          - '--log.level=debug'
-        env:
-          - name: POD_NAME
-            valueFrom:
-              fieldRef:
-                fieldPath: metadata.name        
-        volumeMounts:
-        - name: prometheus-storage
-          mountPath: /prometheus/data
       volumes:
       - name: prometheus-config
         configMap: 
@@ -155,4 +98,4 @@ spec:
       accessModes: [ "ReadWriteOnce" ]
       resources:
         requests:
-          storage: 500Mi
+          storage: 100Mi

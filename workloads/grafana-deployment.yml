@@ -18,11 +18,11 @@ data:
     apiVersion: 1
     
     datasources:
-      - name: thanos-querier
+      - name: prometheus
         type: prometheus
         access: proxy
         orgId: 1
-        url: http://thanos-querier:10902
+        url: http://prometheus-service:9090
         version: 1
         editable: false
 ---
@@ -31,22 +31,21 @@ kind: Deployment
 metadata:
   name: grafana-deployment
   labels:
-    app: grafana
-    app.kubernetes.io/component: poc-grafana
+    app: prometheus-thanos-grafana
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: grafana
+      name: grafana
   template:
     metadata:
       labels:
-        app: grafana
-        app.kubernetes.io/component: poc-grafana
+        name: grafana
+        app: prometheus-thanos-grafana
     spec:
       containers:
       - name: grafana
-        image: docker.groupondev.com/grafana/grafana:9.1.0
+        image: grafana/grafana:9.1.0
         ports:
         - name: http-grafana
           containerPort: 3000
