@@ -56,8 +56,8 @@ spec:
           httpGet:
             path: /
             port: 9090
-          initialDelaySeconds: 60
-          periodSeconds: 10
+          initialDelaySeconds: 10
+          periodSeconds: 30
           timeoutSeconds: 5
           failureThreshold: 20
           successThreshold: 1
@@ -65,8 +65,8 @@ spec:
           httpGet:
             path: /
             port: 9090
-          initialDelaySeconds: 60
-          periodSeconds: 10
+          initialDelaySeconds: 30
+          periodSeconds: 30
           timeoutSeconds: 5
           failureThreshold: 20
           successThreshold: 3

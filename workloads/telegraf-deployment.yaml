@@ -29,10 +29,25 @@ data:
     #                            INPUT PLUGINS                                    #
     ###############################################################################
 
+    # This plugin collects agent level metrics
     [[inputs.internal]]
       collect_memstats = true
       tagexclude = ["version", "go_version"]
       [inputs.internal.tags]
+        host = "$HOSTNAME"
+
+    # This plugin collects host level metrics
+    [[inputs.cpu]]
+      collect_memstats = true
+      tagexclude = ["version", "go_version"]
+      [inputs.cpu.tags]
+        host = "$HOSTNAME"
+
+    # This plugin collects hsot level metrics
+    [[inputs.mem]]
+      collect_memstats = true
+      tagexclude = ["version", "go_version"]
+      [inputs.mem.tags]
         host = "$HOSTNAME"
 
     ###############################################################################
@@ -78,8 +93,8 @@ spec:
             command:
             - ls
             - /
-          initialDelaySeconds: 60
-          periodSeconds: 10
+          initialDelaySeconds: 10
+          periodSeconds: 30
           timeoutSeconds: 5
           failureThreshold: 3
           successThreshold: 3
@@ -88,8 +103,8 @@ spec:
             command:
             - ls
             - /
-          initialDelaySeconds: 300
-          periodSeconds: 10
+          initialDelaySeconds: 30
+          periodSeconds: 30
           timeoutSeconds: 5
           failureThreshold: 3
           successThreshold: 1
