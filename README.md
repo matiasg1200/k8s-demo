@@ -30,7 +30,7 @@ You will need a running Kubernetes cluster (could be minikube, kubeadm, GKE, EKS
 This will create a `demo` namespace and deploy all resoruces in that namespace. If you would rather deploy the stack gradually you can follow the order of the `kubectl apply` commands from the `Makefile`.
 
 > If you already have a `demo` workspace in your cluster the make command will fail with: `Error from server (AlreadyExists): namespaces "demo" already exists`
-If that's the case just change `demo` to use a different namespace (make sure to change it in all `kubectl apply` commands).
+If that's the case just change `demo` to use a different namespace. Make sure to change the namespace in all `kubectl apply` commands from the [Makefile](https://github.com/matiasg1200/k8s-demo/blob/main/Makefile) and also on the [prometheus-rbac.yaml](https://github.com/matiasg1200/k8s-demo/blob/main/prometheus-rbac.yaml) file (**L15** and and **L29**).
 
 ## Interacting with the stack
 
