@@ -1,23 +1,23 @@
 SHELL := /bin/bash
 UNAME := $(shell uname)
 EXEC_VERSION := 0.0.10
-
-ifeq ($(UNAME), Linux)
-  open_browser_tab = xdg-open
-  date_cmd = date
-  xargs_cmd = xargs
-  sed_cmd = sed
-else ifeq ($(UNAME), Darwin)
-  open_browser_tab = open
-  date_cmd = gdate
-  xargs_cmd = gxargs
-  sed_cmd = gsed
-endif
-
+    
 ## make deploy-all # Deploy whole stack
 .PHONY: deploy-all
-deploy-all: kubectl apply -f
-deploy-all: kubectl apply -f workload/
-deploy-all: kubectl apply -f services/
+deploy-all:
+	@kubectl create namespace demo
+	@kubectl apply -n demo -f workloads/telegraf-deployment.yaml
+	@kubectl apply -n demo -f services/telegraf-clusterip.yaml
+	@kubectl apply -n demo -f prometheus-rbac.yaml
+	@kubectl apply -n demo -f workloads/prometheus.yaml
+	@kubectl apply -n demo -f services/prometheus-nodeport.yaml
+	@kubectl apply -n demo -f workloads/grafana-deployment.yaml
+	@kubectl apply -n demo -f services/grafana-nodeport.yaml
 
-## make deploy res=ENV # Deploy single resource (workload + service)
+## make clean-up
+.PHONY: clean-up
+clean-up:
+	@kubectl delete clusterrole prometheus-pods-role 
+	@kubectl delete clusterrolebinding prometheus-pods-role-binding
+	@kubectl delete namespace demo
+
