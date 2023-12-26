@@ -38,14 +38,12 @@ data:
 
     # This plugin collects host level metrics
     [[inputs.cpu]]
-      collect_memstats = true
       tagexclude = ["version", "go_version"]
       [inputs.cpu.tags]
         host = "$HOSTNAME"
 
     # This plugin collects hsot level metrics
     [[inputs.mem]]
-      collect_memstats = true
       tagexclude = ["version", "go_version"]
       [inputs.mem.tags]
         host = "$HOSTNAME"
@@ -71,7 +69,7 @@ spec:
   replicas: 2
   selector:
     matchLabels:
-      app: prometheus-thanos-poc
+      name: telegraf
   template:
     metadata:
       labels:
