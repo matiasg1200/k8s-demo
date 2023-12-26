@@ -5,7 +5,7 @@ EXEC_VERSION := 0.0.10
 ## make deploy-all # Deploy whole stack
 .PHONY: deploy-all
 deploy-all:
-	@kubectl create namespace demo
+	@kubectl apply -f demo-namespace.yaml
 	@kubectl apply -n demo -f workloads/telegraf-deployment.yaml
 	@kubectl apply -n demo -f services/telegraf-clusterip.yaml
 	@kubectl apply -n demo -f prometheus-rbac.yaml
