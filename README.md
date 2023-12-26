@@ -46,9 +46,13 @@ The Prometheus and Grafana `NodePorts` will open up ports `30001` and `30002` re
 
 The initial username and password for grafana is as defualt, `admin` for both. It will ask you to change the password after the initial login. 
 
-Finally if you want to interact with the stack using `kubectl` just remember to use the `-n` flag to specifiy the namespace were the resource are running. For example:
+Finally, if you want to interact with the stack using `kubectl` just remember to use the `-n` flag to specifiy the namespace were the resource are running. For example:
 
 `kubectl get all -n demo`
+
+You could optinally create a new context using the `kubectl config set-context` command or by updating the `kubeconfig` file
+
+> Be cautios as changes to the kubeconfig file via command line using `kubectl config` or via manual update could break your current kubectl configuration. For further reference visist: https://kubernetes.io/docs/tasks/access-application-cluster/configure-access-multiple-clusters/
 
 ## Cleaning up
 
